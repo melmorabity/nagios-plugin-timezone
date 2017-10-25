@@ -81,13 +81,13 @@ parse_arguments() {
 
 check_timezone() {
     # Get current timezone
-    local timedatectl
-    timedatectl=$(timedatectl status)
-    [[ $? -ne 0 ]] && exit $STATE_UNKNOWN
+    if ! [[ -L /etc/localtime ]]; then
+	echo "Unable to retrieve current timezone"
+	exit $STATE_UNKNOWN
+    fi
 
-    [[ "$timedatectl" =~ Time\ zone:\ ([^\ ]*) ]]
-    local current_timezone=${BASH_REMATCH[1]}
-
+    localtime=$(realpath /etc/localtime)
+    current_timezone=${localtime#*/zoneinfo/}
     if [[ "$current_timezone" != "$EXPECTED_TIMEZONE" ]]; then
 	echo "$ERROR_STATE_LABEL: Current timezone is $current_timezone (expected timezone: $EXPECTED_TIMEZONE)"
 	exit $ERROR_STATE
